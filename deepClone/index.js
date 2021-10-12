@@ -58,7 +58,7 @@ const numberTag = "[object Number]";
 const stringTag = "[object String]";
 const errorTag = "[object Error]";
 const symbolTag = "[object Symbol]";
-// const regexpTag = "[object RegExp]";
+const regexpTag = "[object RegExp]";
 
 const deepTag = [mapTag, setTag, arrayTag, objectTag];
 
@@ -75,6 +75,7 @@ function cloneOtherType(target) {
     case numberTag:
     case stringTag:
     case errorTag:
+    case regexpTag:
       return new Cor(target);
     case symbolTag:
       return Object(Symbol.prototype.toString.call(target))
@@ -134,6 +135,8 @@ let obj3 = {
   num: new Number(1),
   bool: new Boolean(false),
   date: new Date(),
+  num2: Number(2),
+  regexp: new RegExp()
 };
 // obj3.test = obj3;
 console.log(cloneDeep(obj3), "深拷贝啊");
