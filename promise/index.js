@@ -1,63 +1,58 @@
 function PromiseTest(executor) {
-  debugger
   this.PromiseState = "pending";
   this.PromiseResult = null;
 
-  this.callbacks = [];
+  this.resolveCallbacks = [];
+  this.rejectCallbacks = [];
 
   const self = this;
 
   function resolve(data) {
-    debugger
     if (self.PromiseState !== "pending") return;
     self.PromiseState = "fulfilled";
     self.PromiseResult = data;
     setTimeout(() => {
-      self.callbacks.forEach((fn) => {
+      self.resolveCallbacks.forEach((fn) => {
         fn.onResolved(data);
       });
-    });
+    }, 0);
   }
 
   function reject(data) {
-    debugger
     if (self.PromiseState !== "pending") return;
     self.PromiseState = "rejected";
     self.PromiseResult = data;
     setTimeout(() => {
-      self.callbacks.forEach((fn) => {
+      self.rejectCallbacks.forEach((fn) => {
         fn.onRejected(data);
       });
-    });
+    }, 0);
   }
-  executor(resolve, reject);
+  try {
+   executor(resolve, reject);
+  } catch (error) {
+    reject(error)
+  }
 }
 
 PromiseTest.prototype.then = function (onResolved, onRejected) {
-  debugger
   const self = this;
-  console.log(typeof onResolved, '成功');
-  console.log(typeof onRejected, '失败');
   if (typeof onRejected !== "function") {
-    debugger
     onRejected = (reason) => {
       throw reason;
     };
   }
 
   if (typeof onResolved !== "function") {
-    debugger
     onResolved = (value) => value;
   }
 
   return new PromiseTest((resolve, reject) => {
-    debugger
     function callback(type) {
-      debugger
       try {
         let result = type(self.PromiseResult);
+        // 判断是否是promise实例
         if (result instanceof PromiseTest) {
-          debugger
           result.then(
             (v) => {
               resolve(v);
@@ -67,47 +62,42 @@ PromiseTest.prototype.then = function (onResolved, onRejected) {
             }
           );
         } else {
-          debugger
           resolve(result);
         }
       } catch (error) {
-        debugger
         reject(error);
       }
     }
     if (this.PromiseState === "fulfilled") {
-      debugger
       setTimeout(() => {
         callback(onResolved);
-      });
+      }, 0);
     }
     if (this.PromiseState === "rejected") {
-      debugger
       setTimeout(() => {
         callback(onRejected);
-      });
+      }, 0);
     }
     if (this.PromiseState === "pending") {
-      debugger
-      this.callbacks.push({
+      this.resolveCallbacks.push({
         onResolved: function () {
-          debugger
           callback(onResolved);
-        },
+        }
+      });
+      this.rejectCallbacks.push({
         onRejected: function () {
-          debugger
           callback(onRejected);
-        },
+        }
       });
     }
   });
 };
 
 PromiseTest.prototype.catch = function (onRejected) {
-  debugger
   return this.then(undefined, onRejected);
 };
 
+// 返回一个fulfilled状态的promise
 PromiseTest.resolve = function (value) {
   return new PromiseTest((resolve, reject) => {
     if (value instanceof PromiseTest) {
@@ -125,6 +115,7 @@ PromiseTest.resolve = function (value) {
   });
 };
 
+// 直接返回一个reject(reason)
 PromiseTest.reject = function (reason) {
   return new PromiseTest((resolve, reject) => {
     reject(reason);
@@ -143,21 +134,6 @@ PromiseTest.all = function (promises) {
           if (count === promises.length) {
             resolve(arr);
           }
-        },
-        (r) => {
-          reject(r);
-        }
-      );
-    }
-  });
-};
-
-PromiseTest.race = function (promises) {
-  return new PromiseTest((resolve, reject) => {
-    for (let i = 0; i < promises.length; i++) {
-      promises[i].then(
-        (v) => {
-          resolve(v);
         },
         (r) => {
           reject(r);

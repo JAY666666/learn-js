@@ -17,11 +17,31 @@
           reject(a);
         }
       });
-      promise.then((res) => {
-       return promise = res + 1
-      }).then(res => {
-        console.log(res, 'then穿透')
-      }).catch((err) => console.log(err));
+      // 测试then catch
+      promise
+        .then((res) => {
+          return res + 1;
+        })
+        .then((res) => {
+          console.log(res, "then穿透");
+        })
+        .catch((err) => console.log(err));
+
+      // 测试resolve()
+      PromiseTest.resolve(1).then((res) => {
+        console.log(res);
+      });
+
+      // 测试reject()
+      PromiseTest.reject(new Error("login Fail")).catch((err) =>
+        console.log(err)
+      );
+
+      // 测试all()
+      let p1 = PromiseTest.resolve(1)
+      let p2 = PromiseTest.resolve(2)
+      let p3 = PromiseTest.reject(3)
+      PromiseTest.all([p1,p2,p3]).then(res => console.log(res)).catch(err => console.log(err))
     </script>
   </body>
 </html>
